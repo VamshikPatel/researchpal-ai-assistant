@@ -25,7 +25,7 @@ function App() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/ask', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
@@ -61,7 +61,7 @@ function App() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/ask', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: summaryQuery })
@@ -93,7 +93,7 @@ function App() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/ask', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: quizQuery })
