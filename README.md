@@ -16,9 +16,9 @@ ResearchPal is a modern web application that leverages the power of Perplexity A
 - AI-Powered Search: Advanced search capabilities using Perplexity AI
 - Real-Time Answers: Get instant, accurate responses to your queries  
 - Smart Summarization: Automatically summarize complex information
-- Quiz Generation**: Create custom quizzes from research content
-- Clean Interface**: Modern, responsive design built with React
-- Mobile Friendly**: Optimized for all device sizes
+- Quiz Generation: Create custom quizzes from research content
+- Clean Interface: Modern, responsive design built with React
+- Mobile Friendly: Optimized for all device sizes
 
 ##  Tech Stack
 
