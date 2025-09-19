@@ -6,7 +6,15 @@ require('dotenv').config()
 const app = express()
 const PORT = 3001
 
-app.use(cors())
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://researchpal-frontend.vercel.app'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+}))
 app.use(express.json())
 
 app.post('/api/ask', async (req, res) => {
@@ -34,7 +42,7 @@ app.post('/api/ask', async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'sonar-pro', // ← CHANGED: Use current model
+        model: 'sonar-pro',
         messages: [
           {
             role: 'system',
