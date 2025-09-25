@@ -3,10 +3,29 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "includeFiles": ["package.json"]
+      }
     }
   ],
   "routes": [
+    {
+      "src": "/health",
+      "dest": "/server.js",
+      "methods": ["GET"]
+    },
+    {
+      "src": "/api/test",
+      "dest": "/server.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/ask",
+      "dest": "/server.js", 
+      "methods": ["POST", "OPTIONS"]
+    },
     {
       "src": "/api/(.*)",
       "dest": "/server.js"
@@ -30,16 +49,27 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+          "value": "Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control"
         },
         {
           "key": "Access-Control-Allow-Credentials",
           "value": "true"
+        },
+        {
+          "key": "Access-Control-Max-Age",
+          "value": "86400"
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "server.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "regions": ["iad1"],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
-
-
-
