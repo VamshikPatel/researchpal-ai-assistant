@@ -8,13 +8,17 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
@@ -34,10 +38,8 @@
         }
       ]
     }
-  ],
-  "env": {
-    "PERPLEXITY_API_KEY": "@perplexity_api_key"
-  }
+  ]
 }
+
 
 
