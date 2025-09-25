@@ -1,32 +1,25 @@
 const express = require('express')
-const cors = require('cors')
 
 require('dotenv').config()
 
 const app = express()
 const PORT = process.env.PORT || 3001
 
-// Enhanced CORS configuration
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://researchpal.vercel.app'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'X-Requested-With',
-    'Accept',
-    'Origin'
-  ]
-}))
-
-// Handle preflight OPTIONS requests for all routes
-app.options('*', cors())
+// Manual CORS middleware
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end()
+    return
+  }
+  
+  next()
+})
 
 app.use(express.json())
 
@@ -37,7 +30,6 @@ app.post('/api/ask', async (req, res) => {
     
     const apiKey = process.env.PERPLEXITY_API_KEY;
     console.log('API Key:', apiKey ? 'Found' : 'Missing');
-    console.log('API Key starts with:', apiKey ? apiKey.substring(0, 10) + '...' : 'No key');
     
     if (!apiKey) {
       console.error('No API key found!')
@@ -94,9 +86,12 @@ app.post('/api/ask', async (req, res) => {
   }
 })
 
+// Add a test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Backend is working!' })
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
   console.log('API Key Status:', process.env.PERPLEXITY_API_KEY ? 'LOADED ✅' : 'MISSING ❌')
 })
-
-
