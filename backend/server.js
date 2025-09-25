@@ -4,17 +4,30 @@ const cors = require('cors')
 require('dotenv').config()
 
 const app = express()
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
+// Enhanced CORS configuration
 app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://researchpal-frontend.vercel.app'
+    'https://researchpal.vercel.app'
   ],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ]
 }))
+
+// Handle preflight OPTIONS requests for all routes
+app.options('*', cors())
+
 app.use(express.json())
 
 app.post('/api/ask', async (req, res) => {
@@ -85,4 +98,5 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
   console.log('API Key Status:', process.env.PERPLEXITY_API_KEY ? 'LOADED ✅' : 'MISSING ❌')
 })
+
 
