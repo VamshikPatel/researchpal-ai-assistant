@@ -6,6 +6,7 @@ require('dotenv').config()
 const app = express()
 const PORT = process.env.PORT || 3001
 
+// Enhanced CORS configuration for Vercel deployment
 app.use(cors({
   origin: [
     'http://localhost:5173',
@@ -13,7 +14,22 @@ app.use(cors({
     'https://researchpal.vercel.app'
   ],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
+// Handle preflight requests explicitly
+app.options('*', cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000', 
+    'https://researchpal.vercel.app'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }))
 
 app.use(express.json())
@@ -81,7 +97,18 @@ app.post('/api/ask', async (req, res) => {
   }
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-  console.log('API Key Status:', process.env.PERPLEXITY_API_KEY ? 'LOADED ✅' : 'MISSING ❌')
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ message: 'ResearchPal API is running!' })
 })
+
+// For local development
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+    console.log('API Key Status:', process.env.PERPLEXITY_API_KEY ? 'LOADED ✅' : 'MISSING ❌')
+  })
+}
+
+// Export for Vercel
+module.exports = app
