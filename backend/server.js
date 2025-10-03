@@ -34,7 +34,7 @@ app.options('*', cors({
 
 app.use(express.json())
 
-app.post('/api/ask', async (req, res) => {
+app.post('/api/search', async (req, res) => {
   try {
     const { query } = req.body
     console.log('Received query:', query)
