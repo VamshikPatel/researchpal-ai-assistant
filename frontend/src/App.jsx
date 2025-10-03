@@ -1,285 +1,162 @@
-import { useState, useRef, useEffect } from 'react'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
+import AnimatedBackground from './components/AnimatedBackground';
+
+// Function to remove markdown formatting
+const removeMarkdown = (text) => {
+  if (!text) return '';
+  
+  return text
+    // Remove bold (**text** or __text__)
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    // Remove italic (*text* or _text_)
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    // Remove strikethrough (~~text~~)
+    .replace(/~~(.+?)~~/g, '$1')
+    // Remove inline code (`text`)
+    .replace(/`(.+?)`/g, '$1')
+    // Remove code blocks
+    .replace(/``````/g, '')
+    // Remove headings (# text)
+    .replace(/^#+\s+(.+?)$/gm, '$1')
+    // Remove links [text](url) - keep only text
+    .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+    // Remove reference-style citations [1][2]
+    .replace(/\[\d+\]/g, '');
+};
 
 function App() {
-  const [query, setQuery] = useState('')
-  const [messages, setMessages] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const messagesEndRef = useRef(null)
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
 
-  async function handleAsk() {
-    if (!query.trim() || loading) return
+
+    setLoading(true);
+    setError(null);
     
-    const userMessage = { type: 'user', content: query, timestamp: Date.now() }
-    setMessages(prev => [...prev, userMessage])
-    setQuery('')
-    setLoading(true)
-
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ask`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/api/search`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ query })
-      })
-      
-      const data = await response.json()
-      
-      const aiMessage = {
-        type: 'ai',
-        content: data.content || 'No response received',
-        sources: data.sources || [],
-        timestamp: Date.now()
+      });
+
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status} ${response.statusText}`);
       }
-      
-      setMessages(prev => [...prev, aiMessage])
+
+
+      const data = await response.json();
+      setResults(data);
     } catch (error) {
-      const errorMessage = {
-        type: 'ai',
-        content: 'Sorry, something went wrong. Please try again.',
-        sources: [],
-        timestamp: Date.now()
-      }
-      setMessages(prev => [...prev, errorMessage])
+      console.error('Search failed:', error);
+      setError('Failed to fetch results. Please try again.');
+      setResults(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false)
-  }
+  };
 
-  async function handleSummarize(content) {
-    if (loading) return
-    
-    const summaryQuery = `Please provide a concise summary of this: ${content}`
-    setMessages(prev => [...prev, { type: 'user', content: 'Summarize this answer', timestamp: Date.now() }])
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: summaryQuery })
-      })
-      
-      const data = await response.json()
-      setMessages(prev => [...prev, {
-        type: 'ai',
-        content: data.content,
-        sources: data.sources || [],
-        timestamp: Date.now()
-      }])
-    } catch (error) {
-      setMessages(prev => [...prev, {
-        type: 'ai', 
-        content: 'Failed to generate summary',
-        sources: [],
-        timestamp: Date.now()
-      }])
-    }
-    setLoading(false)
-  }
-
-  async function handleQuiz(content) {
-    if (loading) return
-    
-    const quizQuery = `Generate 5 quiz questions with answers based on this content: ${content}`
-    setMessages(prev => [...prev, { type: 'user', content: 'Generate quiz questions', timestamp: Date.now() }])
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: quizQuery })
-      })
-      
-      const data = await response.json()
-      setMessages(prev => [...prev, {
-        type: 'ai',
-        content: data.content,
-        sources: data.sources || [],
-        timestamp: Date.now()
-      }])
-    } catch (error) {
-      setMessages(prev => [...prev, {
-        type: 'ai',
-        content: 'Failed to generate quiz questions', 
-        sources: [],
-        timestamp: Date.now()
-      }])
-    }
-    setLoading(false)
-  }
 
   return (
     <div className="app">
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo">
-            <span className="logo-icon">🔍</span>
-            <span className="logo-text">ResearchPal</span>
-          </div>
-          <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>×</button>
-        </div>
-        
-        <nav className="sidebar-nav">
-          <div className="nav-section">
-            <button className="nav-item active">
-              <span className="nav-icon">🏠</span>
-              Home
-            </button>
-            <button className="nav-item">
-              <span className="nav-icon">🔍</span>
-              Discover
-            </button>
-            <button className="nav-item">
-              <span className="nav-icon">📚</span>
-              Library
-            </button>
-          </div>
-          
-          <div className="nav-section">
-            <h3 className="nav-title">Recent</h3>
-            {messages.filter(m => m.type === 'user').slice(-5).map((msg, idx) => (
-              <button key={idx} className="recent-item">
-                {msg.content.substring(0, 30)}...
-              </button>
-            ))}
-          </div>
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main-content">
-        {/* Header */}
-        <header className="header">
-          <button className="menu-btn" onClick={() => setSidebarOpen(true)}>☰</button>
-          <div className="header-logo">
-            <span className="logo-icon">🔍</span>
-            <span>ResearchPal</span>
-          </div>
+      <AnimatedBackground />
+      
+      <div className="container">
+        <header className="hero">
+          <h1 className="brand-title">
+            ResearchPal
+          </h1>
+          <p className="tagline">Navigate the depths of knowledge with precision</p>
         </header>
 
-        {/* Chat Area */}
-        <div className="chat-container">
-          {messages.length === 0 ? (
-            <div className="welcome-screen">
-              <div className="welcome-content">
-                <h1 className="welcome-title">What can I help you research today?</h1>
-                <p className="welcome-subtitle">Get accurate, real-time answers with cited sources</p>
-                
-                <div className="suggested-queries">
-                  <button className="suggestion-btn" onClick={() => setQuery("What are the latest developments in AI?")}>
-                    What are the latest developments in AI?
-                  </button>
-                  <button className="suggestion-btn" onClick={() => setQuery("Explain quantum computing")}>
-                    Explain quantum computing
-                  </button>
-                  <button className="suggestion-btn" onClick={() => setQuery("How does machine learning work?")}>
-                    How does machine learning work?
-                  </button>
-                  <button className="suggestion-btn" onClick={() => setQuery("What is blockchain technology?")}>
-                    What is blockchain technology?
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="messages">
-              {messages.map((message, idx) => (
-                <div key={idx} className={`message ${message.type}`}>
-                  {message.type === 'user' ? (
-                    <div className="user-message">
-                      <div className="message-avatar">👤</div>
-                      <div className="message-content">{message.content}</div>
-                    </div>
-                  ) : (
-                    <div className="ai-message">
-                      <div className="message-avatar ai-avatar">🤖</div>
-                      <div className="ai-response">
-                        <div className="message-content">{message.content}</div>
-                        
-                        {message.sources && message.sources.length > 0 && (
-                          <div className="sources">
-                            <h4>Sources:</h4>
-                            {message.sources.map((source, sourceIdx) => (
-                              <a key={sourceIdx} href={source} target="_blank" rel="noopener noreferrer" className="source-link">
-                                {sourceIdx + 1}. {new URL(source).hostname}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                        
-                        <div className="message-actions">
-                          <button className="action-btn" onClick={() => handleSummarize(message.content)}>
-                            📝 Summarize
-                          </button>
-                          <button className="action-btn" onClick={() => handleQuiz(message.content)}>
-                            ❓ Quiz Me
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {loading && (
-                <div className="message ai">
-                  <div className="ai-message">
-                    <div className="message-avatar ai-avatar">🤖</div>
-                    <div className="ai-response">
-                      <div className="typing-indicator">
-                        <span></span><span></span><span></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
 
-        {/* Search Input */}
-        <div className="search-section">
-          <div className="search-container">
-            <div className="search-box">
+        <main className="search-section">
+          <form onSubmit={handleSearch} className="search-form">
+            <div className="search-wrapper">
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask anything..."
-                onKeyPress={(e) => e.key === 'Enter' && handleAsk()}
-                disabled={loading}
+                placeholder="Ask anything about research..."
                 className="search-input"
+                autoFocus
               />
-              <button 
-                onClick={handleAsk} 
-                disabled={loading || !query.trim()}
-                className="search-btn"
-              >
-                {loading ? '⏳' : '↗'}
+              <button type="submit" className="search-btn" disabled={loading}>
+                {loading ? (
+                  <span className="loader"></span>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
               </button>
             </div>
-            <div className="search-footer">
-              <span>Pro Search • Focus: All</span>
-            </div>
-          </div>
-        </div>
-      </main>
+          </form>
 
-      {/* Overlay for mobile sidebar */}
-      {sidebarOpen && <div className="overlay" onClick={() => setSidebarOpen(false)}></div>}
+
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
+            </div>
+          )}
+
+
+          {results && (
+            <div className="results">
+              <div className="result-card">
+                <h3 className="result-title">Answer</h3>
+                <div className="result-content">
+                  {removeMarkdown(results.content || results.answer || results.choices?.[0]?.message?.content) || 'No answer available'}
+                </div>
+                {results.sources && results.sources.length > 0 && (
+                  <div className="citations">
+                    <h4>Sources</h4>
+                    {results.sources.map((cite, idx) => (
+                      <a 
+                        key={idx} 
+                        href={cite} 
+                        className="citation-link" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        [{idx + 1}] {cite}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+
+          {!results && !loading && (
+            <div className="empty-state">
+              <p>Start exploring by asking a question</p>
+            </div>
+          )}
+        </main>
+
+
+        <footer className="footer">
+          <p>Powered by curiosity · Built with precision</p>
+        </footer>
+      </div>
     </div>
-  )
+  );
 }
 
-export default App
+
+export default App;
