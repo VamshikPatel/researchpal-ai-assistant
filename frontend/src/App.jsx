@@ -2,7 +2,9 @@ import { useState } from 'react';
 import './App.css';
 import { ThemeProvider } from './components/theme-provider';
 import { ModeToggle } from './components/mode-toggle';
-import { ButtonSpinner } from './components/ButtonSpinner';
+import { Spinner } from './components/ui/spinner';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 // Function to remove markdown formatting
 const removeMarkdown = (text) => {
@@ -70,37 +72,54 @@ function App() {
           </header>
 
           <main className="search-section">
-            <form onSubmit={handleSearch} className="search-form">
-              <div className="search-wrapper">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Ask anything about research."
-                  className="search-input"
-                  autoFocus
-                  disabled={loading}
-                />
-                <button type="submit" className="search-btn" disabled={loading}>
-                  {loading ? (
-                    <ButtonSpinner />
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </button>
+            {/* Input compatible with both themes */}
+            <form onSubmit={handleSearch} className="w-full max-w-4xl mx-auto mb-8">
+              <div className="relative w-full bg-muted/40 dark:bg-muted/40 hover:bg-muted/60 dark:hover:bg-muted/60 rounded-xl border border-border/50 p-2 transition-all duration-200 focus-within:bg-background focus-within:dark:bg-card focus-within:border-primary/50 focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/20">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Ask anything. Type @ for mentions"
+                    disabled={loading}
+                    className="flex-1 border-0 bg-transparent text-base h-12 pl-4 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    autoFocus
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={loading}
+                    size="icon"
+                    className="h-10 w-10 rounded-lg shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    {loading ? (
+                      <Spinner className="h-5 w-5" />
+                    ) : (
+                      <svg 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 24 24" 
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M5 12h14m-7-7l7 7-7 7" />
+                      </svg>
+                    )}
+                  </Button>
+                </div>
               </div>
             </form>
 
             {error && (
-              <div className="error-message">
+              <div className="error-message mb-4">
                 <p>{error}</p>
               </div>
             )}
 
             {results && (
-              <div className="results">
+              <div className="results mb-6">
                 <div className="result-card">
                   <h3 className="result-title">Answer</h3>
                   <div className="result-content">
