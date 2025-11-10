@@ -62,9 +62,9 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="researchpal-theme">
-      <div className="app">
+      <div className="fixed top-6 right-6 z-50">
         <ModeToggle />
-        
+      </div>
         <div className="container">
           <header className="hero">
             <h1 className="brand-title">ResearchPal</h1>
@@ -156,7 +156,6 @@ function App() {
             <p>Powered by curiosity · Built with precision</p>
           </footer>
         </div>
-      </div>
     </ThemeProvider>
   );
 }

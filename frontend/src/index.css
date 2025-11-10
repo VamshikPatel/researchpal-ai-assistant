@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  view-transition-name: root;
+}
+
+/* Ensure smooth color transitions for background/text */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* View transition overrides for animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
