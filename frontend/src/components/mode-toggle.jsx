@@ -1,130 +1,67 @@
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "./theme-provider"
-import { useEffect, useState, useRef } from "react"
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/theme-provider";
+import { useRef } from "react";
 
 export function ModeToggle() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const buttonRef = useRef(null)
+  const { theme, setTheme } = useTheme();
+  const buttonRef = useRef(null);
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const toggleTheme = (event) => {
+    const newTheme = theme === "light" ? "dark" : "light";
 
-  const toggleTheme = async () => {
-    const newTheme = theme === "light" ? "dark" : "light"
-    
+    // Check if View Transition API is supported
     if (!document.startViewTransition) {
-      setTheme(newTheme)
-      return
+      setTheme(newTheme);
+      return;
     }
 
-    const button = buttonRef.current
-    if (button) {
-      const rect = button.getBoundingClientRect()
-      const x = rect.left + rect.width / 2
-      const y = rect.top + rect.height / 2
-      
-      const xPercent = (x / window.innerWidth) * 100
-      const yPercent = (y / window.innerHeight) * 100
-      
-      document.documentElement.style.setProperty('--click-x', `${xPercent}%`)
-      document.documentElement.style.setProperty('--click-y', `${yPercent}%`)
-    }
+    // Get button position for animation origin
+    const rect = buttonRef.current.getBoundingClientRect();
+    const x = window.innerWidth;
+    const y = window.innerHeight / 250;
 
-    await document.startViewTransition(() => {
-      setTheme(newTheme)
-    }).ready
-  }
+    // Calculate radius to cover entire viewport
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
 
-  if (!mounted) {
-    return null
-  }
+    // Create animation keyframes
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`
+    ];
+
+    // Start the view transition
+    const transition = document.startViewTransition(async () => {
+      setTheme(newTheme);
+    });
+
+    // Wait for transition to be ready, then animate
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: clipPath },
+        {
+          duration: 600,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)"
+        }
+      );
+    });
+  };
 
   return (
-    <>
-      <style>{`
-        @keyframes circle-blur-in {
-          from {
-            clip-path: circle(0% at var(--click-x, 90%) var(--click-y, 5%));
-            filter: blur(10px);
-          }
-          to {
-            clip-path: circle(150% at var(--click-x, 90%) var(--click-y, 5%));
-            filter: blur(0px);
-          }
-        }
-
-        @keyframes circle-blur-out {
-          from {
-            clip-path: circle(150% at var(--click-x, 90%) var(--click-y, 5%));
-            filter: blur(0px);
-          }
-          to {
-            clip-path: circle(0% at var(--click-x, 90%) var(--click-y, 5%));
-            filter: blur(10px);
-          }
-        }
-
-        ::view-transition-old(root) {
-          animation: circle-blur-out 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        ::view-transition-new(root) {
-          animation: circle-blur-in 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @media (max-width: 640px) {
-          button[aria-label="Toggle theme"] {
-            top: 1rem !important;
-            right: 1rem !important;
-            width: 2.25rem !important;
-            height: 2.25rem !important;
-          }
-
-          button[aria-label="Toggle theme"] svg {
-            width: 1.125rem !important;
-            height: 1.125rem !important;
-          }
-        }
-      `}</style>
-      
-      <button
-        ref={buttonRef}
-        onClick={toggleTheme}
-        className="fixed top-6 right-6 z-50 inline-flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200 hover:opacity-80 active:scale-95"
-        aria-label="Toggle theme"
-        style={{
-          background: 'transparent',
-          border: 'none',
-          padding: '0.5rem',
-          cursor: 'pointer'
-        }}
-      >
-        {/* Sun Icon - Visible in Light Mode */}
-        <Sun 
-          className="h-5 w-5 transition-all duration-300"
-          style={{
-            opacity: theme === 'dark' ? 0 : 1,
-            transform: theme === 'dark' ? 'scale(0) rotate(90deg)' : 'scale(1) rotate(0deg)',
-            position: 'absolute',
-            color: 'currentColor'
-          }}
-          strokeWidth={2}
-        />
-        
-        {/* Moon Icon - Visible in Dark Mode */}
-        <Moon 
-          className="h-5 w-5 transition-all duration-300"
-          style={{
-            opacity: theme === 'dark' ? 1 : 0,
-            transform: theme === 'dark' ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(-90deg)',
-            position: 'absolute',
-            color: 'currentColor'
-          }}
-          strokeWidth={2}
-        />
-      </button>
-    </>
-  )
+    <Button
+      ref={buttonRef}
+      variant="outline"
+      size="icon"
+      onClick={toggleTheme}
+      className="relative"
+    >
+      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
 }
