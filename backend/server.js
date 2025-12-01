@@ -106,7 +106,7 @@ app.get('/', (req, res) => {
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
-    console.log('API Key Status:', process.env.PERPLEXITY_API_KEY ? 'LOADED ✅' : 'MISSING ❌')
+    console.log('API Key Status:', process.env.PERPLEXITY_API_KEY ? 'LOADED' : 'MISSING')
   })
 }
 
