@@ -67,7 +67,7 @@ function App() {
       </div>
         <div className="container">
           <header className="hero">
-            <h1 className="brand-title">ResearchPal</h1>
+            <h1 className="brand-title">ResearchPlex</h1>
             <p className="tagline">Navigate the depths of knowledge with precision</p>
           </header>
 
