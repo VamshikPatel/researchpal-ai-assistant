@@ -9,7 +9,7 @@
 
 ##  Overview
 
-ResearchPal is a modern web application that leverages the power of Perplexity AI to provide intelligent research assistance. Whether you're a student, researcher, or professional, ResearchPal helps you find accurate information quickly and efficiently.
+ResearchPlex is a modern web application that leverages the power of Perplexity AI to provide intelligent research assistance. Whether you're a student, researcher, or professional, ResearchPlex helps you find accurate information quickly and efficiently.
 
 ##  Features
 
