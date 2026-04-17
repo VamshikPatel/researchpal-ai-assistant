@@ -1,4 +1,4 @@
-#  ResearchPal - AI Research Assistant
+#  ResearchPlex - AI Research Assistant
 
 > An intelligent research companion powered by Perplexity AI that transforms how you discover, analyze, and synthesize information.
 
